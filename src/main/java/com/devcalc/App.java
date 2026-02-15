@@ -1,0 +1,137 @@
+package com.devcalc;
+
+import com.devcalc.service.CalculatorService;
+import io.javalin.Javalin;
+import io.javalin.http.Context;
+
+/**
+ * Aplicação principal da DevCalc API.
+ * API REST para operações matemáticas simples.
+ */
+public class App {
+
+    private static final CalculatorService calculatorService = new CalculatorService();
+
+    public static void main(String[] args) {
+        Javalin app = createApp();
+        app.start(7000);
+    }
+
+    /**
+     * Cria e configura a aplicação Javalin com os endpoints.
+     * @return instância configurada do Javalin
+     */
+    public static Javalin createApp() {
+        Javalin app = Javalin.create(config -> {
+            config.showJavalinBanner = false;
+        });
+
+        // Endpoint raiz
+        app.get("/", ctx -> {
+            ctx.json(new Response("DevCalc API está funcionando!", 
+                "Use os endpoints: /add, /subtract, /multiply, /divide com parâmetros a e b"));
+        });
+
+        // Endpoint de adição
+        app.get("/add", ctx -> {
+            handleOperation(ctx, (a, b) -> calculatorService.add(a, b));
+        });
+
+        // Endpoint de subtração
+        app.get("/subtract", ctx -> {
+            handleOperation(ctx, (a, b) -> calculatorService.subtract(a, b));
+        });
+
+        // Endpoint de multiplicação
+        app.get("/multiply", ctx -> {
+            handleOperation(ctx, (a, b) -> calculatorService.multiply(a, b));
+        });
+
+        // Endpoint de divisão
+        app.get("/divide", ctx -> {
+            handleOperation(ctx, (a, b) -> calculatorService.divide(a, b));
+        });
+
+        // Handler de exceções
+        app.exception(IllegalArgumentException.class, (e, ctx) -> {
+            ctx.status(400);
+            ctx.json(new ErrorResponse(e.getMessage()));
+        });
+
+        return app;
+    }
+
+    /**
+     * Processa uma operação matemática a partir dos parâmetros da requisição.
+     */
+    private static void handleOperation(Context ctx, Operation operation) {
+        try {
+            String aParam = ctx.queryParam("a");
+            String bParam = ctx.queryParam("b");
+
+            if (aParam == null || bParam == null) {
+                ctx.status(400);
+                ctx.json(new ErrorResponse("Parâmetros 'a' e 'b' são obrigatórios"));
+                return;
+            }
+
+            double a = Double.parseDouble(aParam);
+            double b = Double.parseDouble(bParam);
+            double result = operation.execute(a, b);
+
+            ctx.json(new OperationResponse(a, b, result));
+        } catch (NumberFormatException e) {
+            ctx.status(400);
+            ctx.json(new ErrorResponse("Parâmetros devem ser números válidos"));
+        } catch (IllegalArgumentException e) {
+            throw e; // Será tratado pelo exception handler
+        }
+    }
+
+    /**
+     * Interface funcional para operações matemáticas.
+     */
+    @FunctionalInterface
+    private interface Operation {
+        double execute(double a, double b);
+    }
+
+    /**
+     * Classe para resposta de operação bem-sucedida.
+     */
+    private static class OperationResponse {
+        public final double a;
+        public final double b;
+        public final double result;
+
+        public OperationResponse(double a, double b, double result) {
+            this.a = a;
+            this.b = b;
+            this.result = result;
+        }
+    }
+
+    /**
+     * Classe para resposta genérica.
+     */
+    private static class Response {
+        public final String message;
+        public final String info;
+
+        public Response(String message, String info) {
+            this.message = message;
+            this.info = info;
+        }
+    }
+
+    /**
+     * Classe para resposta de erro.
+     */
+    private static class ErrorResponse {
+        public final String error;
+
+        public ErrorResponse(String error) {
+            this.error = error;
+        }
+    }
+}
