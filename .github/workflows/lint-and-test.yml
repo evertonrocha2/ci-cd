@@ -1,0 +1,66 @@
+name: Lint and Test
+
+on:
+  workflow_call:
+    inputs:
+      run_tests:
+        description: 'Executar testes?'
+        required: false
+        default: true
+        type: boolean
+      run_lint:
+        description: 'Executar análise de código?'
+        required: false
+        default: true
+        type: boolean
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run_tests }}
+    
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+      
+      - name: Configurar Java 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'maven'
+      
+      - name: Executar testes
+        run: mvn test
+      
+      - name: Upload dos relatórios de teste
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: target/surefire-reports/
+          retention-days: 7
+
+  lint:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.run_lint }}
+    
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+      
+      - name: Configurar Java 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'maven'
+      
+      - name: Análise de código com Checkstyle
+        uses: nikitasavinov/checkstyle-action@0.6.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-pr-review
+          level: warning
+          checkstyle_config: google_checks.xml
+          fail_on_error: false
