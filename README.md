@@ -1,7 +1,5 @@
 # DevCalc API
 
-![CI/CD Pipeline](https://github.com/SEU_USUARIO/SEU_REPOSITORIO/actions/workflows/ci.yml/badge.svg)
-
 ## Objetivo
 
 Demonstrar a implementação de pipelines CI/CD com GitHub Actions, incluindo workflows reutilizáveis e integração com actions do Marketplace.
