@@ -91,41 +91,56 @@ runs:
   main: 'dist/index.js'  # Arquivo principal pra executar
 ```
 
-## Exemplo Prático: Como usamos o Checkstyle no nosso projeto
+## Exemplo Prático: Setup Java Action
 
-No DevCalc, a gente usa uma action chamada **checkstyle-action** que verifica se nosso código Java está seguindo boas práticas de estilo. É tipo ter um revisor automático de código!
+No DevCalc, a gente usa uma action super importante chamada **setup-java** que instala e configura o Java na máquina virtual do GitHub. Sem ela, não teríamos nem o Java pra compilar nosso código!
 
 ### Como chamamos essa action no nosso workflow
 
 ```yaml
-- name: Análise de código com Checkstyle
-  uses: nikitasavinov/checkstyle-action@0.6.0
+- name: Configurar Java 11
+  uses: actions/setup-java@v4
   with:
-    github_token: ${{ secrets.GITHUB_TOKEN }}
-    reporter: github-pr-review
-    level: warning
-    checkstyle_config: google_checks.xml
-    fail_on_error: false
+    distribution: 'temurin'
+    java-version: '11'
+    cache: 'maven'
 ```
 
 ### Entendendo cada parte:
 
-**`uses: nikitasavinov/checkstyle-action@0.6.0`**
+**`uses: actions/setup-java@v4`**
 
-Aqui a gente tá dizendo: "Ó GitHub, usa essa action aqui pra mim!"
+Aqui a gente tá dizendo: "Ó GitHub, instala o Java pra mim!"
 
-- `nikitasavinov/checkstyle-action` → É tipo o "endereço" da action no GitHub (igual quando você procura um app na loja)
-- `@0.6.0` → É a versão específica que queremos usar (tipo quando você escolhe qual versão do WhatsApp instalar)
+- `actions/setup-java` → É o "endereço" da action no GitHub (actions/ significa que é oficial do próprio GitHub)
+- `@v4` → É a versão 4 da action (sempre use a mais recente pra ter melhorias e correções)
 
 **`with:` - Configurando a action**
 
 Essa parte é onde a gente passa as "configurações" pra action. É tipo quando você configura um app antes de usar:
 
-- `github_token` → Uma senha especial pra action poder comentar no nosso código
-- `reporter` → Como queremos ver os resultados (nesse caso, como comentário no Pull Request)
-- `level` → Quão crítico os avisos precisam ser (aqui tá em "warning" - só avisos)
-- `checkstyle_config` → Qual "régua" de qualidade usar (Google tem um guia de estilo famoso pra Java)
-- `fail_on_error` → Se deve travar tudo quando achar um problema (colocamos `false` pra não ser tão rigoroso)
+- `distribution: 'temurin'` → Qual "sabor" do Java queremos (Temurin é gratuito e mantido pela comunidade Eclipse)
+- `java-version: '11'` → Versão do Java (no nosso caso, Java 11)
+- `cache: 'maven'` → Pede pra action fazer cache das dependências do Maven (deixa tudo mais rápido nas próximas execuções!)
+
+### Outro exemplo: Actions de Upload/Download
+
+A gente também usa actions pra salvar e recuperar arquivos:
+
+```yaml
+- name: Upload do JAR
+  uses: actions/upload-artifact@v4
+  with:
+    name: devcalc-jar
+    path: target/*.jar
+    retention-days: 30
+```
+
+**O que isso faz:**
+- `upload-artifact@v4` → Action oficial pra salvar arquivos
+- `name: devcalc-jar` → Nome que vamos dar pro arquivo salvo
+- `path: target/*.jar` → Onde o arquivo tá (pega qualquer .jar na pasta target)
+- `retention-days: 30` → Guarda por 30 dias (depois o GitHub apaga)
 
 ## Como isso funciona na prática?
 

@@ -56,11 +56,17 @@ jobs:
           java-version: '11'
           cache: 'maven'
       
-      - name: Análise de código com Checkstyle
-        uses: nikitasavinov/checkstyle-action@0.6.0
+      - name: Análise de código com Checkstyle via Maven
+        run: mvn checkstyle:check
+        continue-on-error: true
+      
+      - name: Gerar relatório Checkstyle
+        run: mvn checkstyle:checkstyle
+      
+      - name: Upload do relatório Checkstyle
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          reporter: github-pr-review
-          level: warning
-          checkstyle_config: google_checks.xml
-          fail_on_error: false
+          name: checkstyle-report
+          path: target/site/checkstyle.html
+          retention-days: 7
