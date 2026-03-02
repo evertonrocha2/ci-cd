@@ -92,7 +92,12 @@ Workflow chamado por `ci.yml` usando `workflow_call`.
 
 **Jobs:**
 - **test** - Testes unitários com JUnit 5
-- **lint** - Análise de código com `nikitasavinov/checkstyle-action@0.6.0`
+- **lint** - Análise de código com Maven Checkstyle Plugin
+
+**Actions do Marketplace utilizadas:**
+- `actions/checkout@v4` - Checkout do código
+- `actions/setup-java@v4` - Configuração do Java 11
+- `actions/upload-artifact@v4` - Upload de relatórios e JAR
 
 ## Comandos Maven
 
