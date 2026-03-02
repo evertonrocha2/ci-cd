@@ -49,7 +49,7 @@ jobs:
           cache: 'maven'
       
       - name: Compilar projeto
-        run: mvn clean compile
+        run: mvn clean compileeee
 
   package:
     runs-on: ubuntu-latest
